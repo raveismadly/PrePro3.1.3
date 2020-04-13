@@ -1,0 +1,247 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>ADMIN PAGE</title>
+</head>
+
+<body>
+<!--navbar-->
+<nav class="navbar navbar-default" style="background-color: #303030">
+    <div class="navbar-header">
+        <h5 class="m-2 text-light" th:inline="text">Hello user with name
+            [[${#httpServletRequest.remoteUser}]] </h5>
+    </div>
+    <form class="form-inline my-2 my-lg-0">
+        <button type="button" class="btn btn-link"><a href="/logout" style="color: lightgray">Logout</a>
+        </button>
+    </form>
+</nav>
+
+<!--страница-->
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+
+        <!--меню слева-->
+
+        <div class="col-3 hidden-md-down pl-0 pr-0" id="left">
+            <br>
+
+            <!--лист-->
+
+            <div class="list-group">
+                <a href="/admin" class="list-group-item list-group-item-action list-group-item-light">Admin</a>
+                <!--на основе ролей показываем/скрываем страницы-->
+                <div sec:authorize="hasRole('ROLE_USER')">
+                    <a href="/user" class="list-group-item list-group-item-action list-group-item-light">User</a>
+                </div>
+            </div>
+        </div>
+
+        <!--основной контент справа-->
+        <div class="col-9 hidden-md-down pl-3 pr-3" id="right">
+            <p class="text-left">
+            <h2>Admin panel</h2></p>
+            <div align="center">
+
+                <!--навигация таблица всех юзеров/форма добавления нового юзера-->
+
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-allusers-tab" data-toggle="tab" href="#nav-home"
+                           role="tab" aria-controls="nav-home" aria-selected="true">User table</a>
+                        <a class="nav-item nav-link flex-grow-0 d-flex align-items-end justify-content-ctr flex-row"
+                           href="#" data-toggle="modal" data-target="#modal-add" th:attr="data-target='#modal-add'"
+                           style="">ADD</a>
+
+                        <!--                    модалка добавления-->
+
+
+                        <div class="modal modal-warning fade in hide" tabindex="-1" id="exampleModalAdd"
+                             th:id="modal-add">
+                            <div class="modal-dialog modal-md" role="document">
+                                <form id="formAdd">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">add User</h5>
+                                            <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                <span aria-hidden="true">×</span></button>
+                                        </div>
+
+                                        <div class="addSelect modal-body">
+                                            <div class="form-group">
+                                                <div class="col-md-8 center-block text-center">
+                                                    <label for="inputAddUsername" class="col-form-label">
+                                                        <p class="font-weight-bold">Username: </p>
+                                                    </label>
+                                                    <input type="text" class="form-control" id="inputAddUsername"
+                                                           name="username" placeholder="Username">
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <div class="col-md-8 center-block text-center">
+                                                    <label for="inputAddPassword" class="col-form-label">
+                                                        <p class="font-weight-bold">Password: </p>
+                                                    </label>
+                                                    <input type="text" class="form-control" id="inputAddPassword"
+                                                           placeholder="Password" name="password">
+                                                </div>
+                                            </div>
+
+                                            <div class="addSelect form-group">
+                                                <div class="col-md-12 center-block text-center">
+                                                    <label class="col-form-lable">
+                                                        <p class="font-weight-bold">Roles: </p>
+                                                    </label>
+                                                    <div class="col-md-12 center-block text-center" id="add-all-roles">
+                                                        <!--см. ajax запрос-->
+                                                        <label><select id="roleAdd" name="roleEdit">-->
+                                                            <option value="ADMIN" th:text="ADMIN"></option>
+                                                            <option value="USER" th:text="USER"></option>
+                                                        </select></label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline pull-left"
+                                                    data-dismiss="modal">Close
+                                            </button>
+                                            <button type="button" id="btnAddUser" class="btn btn-success">Add new
+                                                user
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </nav>
+                <div class="tab-content" style="background-color: white" id="nav-tabContent">
+
+                    <!--таблица всех юзеров-->
+                    <div class="py-5">
+                        <div class="container">
+                            <div class="row">
+                                <div style="">
+                                    <div class="container">
+                                        <div class="card">
+                                            <div class="card-block">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                    <tr>
+                                                        <th scope="col">id</th>
+                                                        <th scope="col">username</th>
+                                                        <th scope="col">password</th>
+                                                        <th scope="col">role</th>
+                                                        <th scope="col">actions</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody id="users-table">
+                                                    <!--                                заполняется в аяксе-->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--модалка редактирования-->
+
+                <div class="modal fade bd-example-modal-md" id="exampleModal" tabindex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-md" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modal-title">Edit user: </h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class=" modal-body">
+                                <form>
+                                    <div class="form-group">
+                                        <input type="hidden" id="modal-hidden-id" name="id">
+                                        <div class="col-md-8 center-block text-center">
+                                            <label for="modalEditId" class="col-form-label">
+                                                <p class="font-weight-bold">ID: </p>
+                                            </label>
+                                            <input type="text" class="form-control" id="modalEditId" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-md-8 center-block text-center">
+                                            <label for="modalEditUsername" class="col-form-label">
+                                                <p class="font-weight-bold">Username: </p>
+                                            </label>
+                                            <input type="text" class="form-control" id="modalEditUsername">
+                                        </div>
+                                    </div>
+                                    <span id="warningEditUsername"></span>
+                                    <br>
+                                    <div class="form-group">
+                                        <div class="col-md-8 center-block text-center">
+                                            <label for="modalEditNewPassword" class="col-form-label">
+                                                <p class="font-weight-bold">Password: </p>
+                                            </label>
+                                            <input type="text" class="form-control" id="modalEditNewPassword"
+                                                   placeholder="New password">
+                                        </div>
+                                    </div>
+                                    <div class="addSelect form-group">
+                                        <div class="col-md-12 center-block text-center">
+                                            <label class="col-form-lable">
+                                                <p class="font-weight-bold">Roles: </p>
+                                            </label>
+                                            <div class="col-md-12 center-block text-center" id="edit-all-roles">
+                                                <!--см. ajax запрос-->
+                                                <label><select id="roleEdit" name="roleEdit">-->
+                                                    <option value="ADMIN" th:text="ADMIN"></option>
+                                                    <option value="USER" th:text="USER"></option>
+                                                </select></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close
+                                        </button>
+                                        <button type="button" id="btnSaveEdit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<script
+        src="https://code.jquery.com/jquery-3.4.1.js"
+        integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+        crossorigin="anonymous">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous">
+</script>
+
+<script type="text/javascript" th:src="@{js/main.js}" src="js/admin.js">
+</script>
+</body>
+</html>
